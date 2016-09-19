@@ -7,10 +7,14 @@ import Svg exposing (..)
 import Svg.Attributes exposing (..)
 import Html.App as App
 import Ship
+import Laser
+import Keyboard exposing (KeyCode)
 
 
 type alias Model =
-    { ship : Ship.Model }
+    { ship : Ship.Model
+    , shots : List Laser.Model
+    }
 
 
 gameSize : ( Float, Float )
@@ -24,16 +28,35 @@ initialModel =
         ( xLimit, yLimit ) =
             gameSize
     in
-        { ship = Ship.startingShip ( xLimit, yLimit ) }
+        { ship = Ship.startingShip ( xLimit, yLimit )
+        , shots = []
+        }
 
 
 type Msg
     = ActOnShip Ship.Msg
+    | ActOnLasers Laser.Msg
+    | Shoot
+    | NoOp
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update message model =
     case message of
+        Shoot ->
+            let
+                nextShot =
+                    Laser.shoot (Ship.center model.ship) 800
+            in
+                ( { model | shots = nextShot :: model.shots }, Cmd.none )
+
+        ActOnLasers laserAction ->
+            let
+                newShots =
+                    List.map (Laser.update laserAction) model.shots
+            in
+                ( { model | shots = newShots }, Cmd.none )
+
         ActOnShip shipAction ->
             let
                 newShip =
@@ -41,10 +64,27 @@ update message model =
             in
                 ( { model | ship = newShip }, Cmd.none )
 
+        NoOp ->
+            ( model, Cmd.none )
+
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
-    Sub.map ActOnShip Ship.subscriptions
+    Sub.batch
+        [ Sub.map ActOnShip Ship.subscriptions
+        , Sub.map ActOnLasers Laser.subscriptions
+        , Keyboard.downs keyDown
+        ]
+
+
+keyDown : KeyCode -> Msg
+keyDown keyCode =
+    case (Debug.log "keyCode" keyCode) of
+        32 ->
+            Shoot
+
+        _ ->
+            NoOp
 
 
 viewBoxSize : String
@@ -59,8 +99,9 @@ viewBoxSize =
 
 
 view : Model -> Svg Msg
-view { ship } =
-    [ Ship.view ship ]
+view { ship, shots } =
+    Ship.view ship
+        :: List.map Laser.view shots
         |> renderUniverse
 
 

@@ -6,6 +6,7 @@ module Ship
         , update
         , subscriptions
         , startingShip
+        , center
         )
 
 import Svg exposing (..)
@@ -38,6 +39,11 @@ startingShip ( xLimit, yLimit ) =
     , yLimit = yLimit
     , xLimit = xLimit
     }
+
+
+center : Model -> ( Float, Float )
+center { x, y, width, height } =
+    ( x + width / 2, y + height / 2 )
 
 
 type Msg
