@@ -8,8 +8,9 @@ module Ship
         , center
         )
 
-import Svg exposing (..)
+import Svg exposing (path, Svg)
 import Svg.Attributes exposing (..)
+import String
 import Time exposing (Time)
 import PlayerActions as Action exposing (Action)
 
@@ -30,8 +31,8 @@ startingShip : ( Float, Float ) -> Model
 startingShip ( xLimit, yLimit ) =
     { x = 10
     , y = 10
-    , width = 60
-    , height = 50
+    , width = 80
+    , height = 40
     , xSpeed = 0
     , ySpeed = 0
     , yLimit = yLimit
@@ -109,10 +110,26 @@ moveX model time =
 
 view : Model -> Svg a
 view model =
-    rect
-        [ x (toString model.x)
-        , y (toString model.y)
-        , width (toString model.width)
-        , height (toString model.height)
+    Svg.path
+        [ d calculatePath model
+        , stroke "black"
         ]
         []
+
+
+calculatePath : Model -> String
+calculatePath { x, y, height, width } =
+    String.join " " <|
+        [ component "M" [ x, y ]
+        , component "v" [ height ]
+        , component "l" [ width, (-height / 2) ]
+        , "Z"
+        ]
+
+
+component : String -> List Float -> String
+component command values =
+    values
+        |> List.map toString
+        |> (::) command
+        |> String.join " "
