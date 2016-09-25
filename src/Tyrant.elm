@@ -8,14 +8,14 @@ import Svg.Attributes exposing (..)
 import Time exposing (Time)
 import Html.App as App
 import Ship
-import Laser
+import Cannon
 import PlayerActions
 import AnimationFrame
 
 
 type alias Model =
     { ship : Ship.Model
-    , shots : List Laser.Model
+    , cannon : Cannon.Model
     }
 
 
@@ -31,7 +31,7 @@ initialModel =
             gameSize
     in
         { ship = Ship.startingShip ( xLimit, yLimit )
-        , shots = []
+        , cannon = Cannon.init
         }
 
 
@@ -47,15 +47,24 @@ update message model =
             let
                 newShip =
                     Ship.tick timeDelta model.ship
+
+                newCannon =
+                    Cannon.tick timeDelta model.cannon
             in
-                ( { model | ship = newShip }, Cmd.none )
+                ( { model | ship = newShip, cannon = newCannon }, Cmd.none )
 
         PlayerAction playerAction ->
             let
                 newShip =
                     Ship.processInput playerAction model.ship
+
+                shipPosition =
+                    Ship.center newShip
+
+                newCannon =
+                    Cannon.processInput playerAction model.cannon shipPosition
             in
-                ( { model | ship = newShip }, Cmd.none )
+                ( { model | ship = newShip, cannon = newCannon }, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg
@@ -78,9 +87,9 @@ viewBoxSize =
 
 
 view : Model -> Svg Msg
-view { ship, shots } =
+view { ship, cannon } =
     Ship.view ship
-        :: List.map Laser.view shots
+        :: Cannon.view cannon
         |> renderUniverse
 
 
