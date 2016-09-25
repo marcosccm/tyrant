@@ -25,20 +25,16 @@ type alias Model =
     }
 
 
-gameSize : ( Float, Float )
-gameSize =
+boundaries : ( Float, Float )
+boundaries =
     ( 800, 800 )
 
 
 init : Model
 init =
-    let
-        ( xLimit, yLimit ) =
-            gameSize
-    in
-        { ship = Ship.startingShip ( xLimit, yLimit )
-        , cannon = Cannon.init
-        }
+    { ship = Ship.startingShip
+    , cannon = Cannon.init
+    }
 
 
 type Msg
@@ -49,15 +45,19 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update message model =
     case message of
-        Tick timeDelta ->
+        Tick delta ->
             let
                 newShip =
-                    Ship.tick timeDelta model.ship
+                    Ship.tick delta boundaries model.ship
 
                 newCannon =
-                    Cannon.tick timeDelta model.cannon
+                    Cannon.tick delta model.cannon
             in
-                ( { model | ship = newShip, cannon = newCannon }, Cmd.none )
+                return <|
+                    { model
+                        | ship = newShip
+                        , cannon = newCannon
+                    }
 
         PlayerAction playerAction ->
             let
@@ -70,7 +70,16 @@ update message model =
                 newCannon =
                     Cannon.processInput playerAction model.cannon shipPosition
             in
-                ( { model | ship = newShip, cannon = newCannon }, Cmd.none )
+                return <|
+                    { model
+                        | ship = newShip
+                        , cannon = newCannon
+                    }
+
+
+return : Model -> ( Model, Cmd Msg )
+return model =
+    ( model, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg
@@ -85,7 +94,7 @@ viewBoxSize : String
 viewBoxSize =
     let
         ( xLimit, yLimit ) =
-            gameSize
+            boundaries
     in
         [ 0, 0, yLimit, xLimit ]
             |> List.map toString
@@ -103,7 +112,7 @@ renderUniverse : List (Svg a) -> Svg a
 renderUniverse children =
     let
         ( xLimit, yLimit ) =
-            gameSize
+            boundaries
     in
         svg
             [ height (toString yLimit)

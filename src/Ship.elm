@@ -22,21 +22,17 @@ type alias Model =
     , height : Float
     , xSpeed : Float
     , ySpeed : Float
-    , xLimit : Float
-    , yLimit : Float
     }
 
 
-startingShip : ( Float, Float ) -> Model
-startingShip ( xLimit, yLimit ) =
+startingShip : Model
+startingShip =
     { x = 10
     , y = 10
     , width = 80
     , height = 40
     , xSpeed = 0
     , ySpeed = 0
-    , yLimit = yLimit
-    , xLimit = xLimit
     }
 
 
@@ -70,42 +66,23 @@ processInput action model =
             model
 
 
-tick : Time -> Model -> Model
-tick timeDelta model =
+tick : Time -> ( Float, Float ) -> Model -> Model
+tick delta ( xLimit, yLimit ) model =
     { model
-        | x = moveX model timeDelta
-        , y = moveY model timeDelta
+        | x =
+            clamp
+                (xLimit - model.width)
+                (model.x + (delta * model.xSpeed))
+        , y =
+            clamp
+                (yLimit - model.height)
+                (model.y + (delta * model.ySpeed))
     }
 
 
-moveY : Model -> Float -> Float
-moveY model time =
-    let
-        delta =
-            time * model.ySpeed
-
-        next =
-            model.y + delta
-
-        limit =
-            model.yLimit - model.height
-    in
-        Basics.max (Basics.min next limit) 0
-
-
-moveX : Model -> Float -> Float
-moveX model time =
-    let
-        delta =
-            time * model.xSpeed
-
-        next =
-            model.x + delta
-
-        limit =
-            model.xLimit - model.width
-    in
-        Basics.max (Basics.min next limit) 0
+clamp : Float -> Float -> Float
+clamp limit attempt =
+    Basics.max (Basics.min attempt limit) 0
 
 
 view : Model -> Svg a
