@@ -5,10 +5,12 @@ import String
 import List
 import Svg exposing (..)
 import Svg.Attributes exposing (..)
+import Time exposing (Time)
 import Html.App as App
 import Ship
 import Laser
-import Keyboard exposing (KeyCode)
+import PlayerActions
+import AnimationFrame
 
 
 type alias Model =
@@ -34,57 +36,34 @@ initialModel =
 
 
 type Msg
-    = ActOnShip Ship.Msg
-    | ActOnLasers Laser.Msg
-    | Shoot
-    | NoOp
+    = PlayerAction PlayerActions.Action
+    | Tick Time
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update message model =
     case message of
-        Shoot ->
-            let
-                nextShot =
-                    Laser.shoot (Ship.center model.ship) 800
-            in
-                ( { model | shots = nextShot :: model.shots }, Cmd.none )
-
-        ActOnLasers laserAction ->
-            let
-                newShots =
-                    List.map (Laser.update laserAction) model.shots
-            in
-                ( { model | shots = newShots }, Cmd.none )
-
-        ActOnShip shipAction ->
+        Tick timeDelta ->
             let
                 newShip =
-                    Ship.update shipAction model.ship
+                    Ship.tick timeDelta model.ship
             in
                 ( { model | ship = newShip }, Cmd.none )
 
-        NoOp ->
-            ( model, Cmd.none )
+        PlayerAction playerAction ->
+            let
+                newShip =
+                    Ship.processInput playerAction model.ship
+            in
+                ( { model | ship = newShip }, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
     Sub.batch
-        [ Sub.map ActOnShip Ship.subscriptions
-        , Sub.map ActOnLasers Laser.subscriptions
-        , Keyboard.downs keyDown
+        [ AnimationFrame.diffs Tick
+        , Sub.map PlayerAction PlayerActions.subscriptions
         ]
-
-
-keyDown : KeyCode -> Msg
-keyDown keyCode =
-    case (Debug.log "keyCode" keyCode) of
-        32 ->
-            Shoot
-
-        _ ->
-            NoOp
 
 
 viewBoxSize : String

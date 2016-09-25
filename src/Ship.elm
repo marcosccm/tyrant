@@ -1,10 +1,9 @@
 module Ship
     exposing
         ( Model
-        , Msg
         , view
-        , update
-        , subscriptions
+        , processInput
+        , tick
         , startingShip
         , center
         )
@@ -12,8 +11,7 @@ module Ship
 import Svg exposing (..)
 import Svg.Attributes exposing (..)
 import Time exposing (Time)
-import Keyboard exposing (KeyCode)
-import AnimationFrame
+import PlayerActions as Action exposing (Action)
 
 
 type alias Model =
@@ -46,46 +44,37 @@ center { x, y, width, height } =
     ( x + width / 2, y + height / 2 )
 
 
-type Msg
-    = Tick Float
-    | MoveLeft
-    | MoveRight
-    | MoveUp
-    | MoveDown
-    | StopLateralMovement
-    | StopUpwardsMovement
-    | NoOp
-
-
-update : Msg -> Model -> Model
-update message model =
-    case message of
-        MoveLeft ->
+processInput : Action -> Model -> Model
+processInput action model =
+    case action of
+        Action.MoveLeft ->
             { model | xSpeed = -0.4 }
 
-        MoveRight ->
+        Action.MoveRight ->
             { model | xSpeed = 0.4 }
 
-        MoveUp ->
+        Action.MoveUp ->
             { model | ySpeed = -0.4 }
 
-        MoveDown ->
+        Action.MoveDown ->
             { model | ySpeed = 0.4 }
 
-        StopLateralMovement ->
+        Action.StopLateralMovement ->
             { model | xSpeed = 0 }
 
-        StopUpwardsMovement ->
+        Action.StopUpwardsMovement ->
             { model | ySpeed = 0 }
 
-        Tick timeDelta ->
-            { model
-                | x = moveX model timeDelta
-                , y = moveY model timeDelta
-            }
-
-        NoOp ->
+        _ ->
             model
+
+
+tick : Time -> Model -> Model
+tick timeDelta model =
+    { model
+        | x = moveX model timeDelta
+        , y = moveY model timeDelta
+    }
 
 
 moveY : Model -> Float -> Float
@@ -116,53 +105,6 @@ moveX model time =
             model.xLimit - model.width
     in
         Basics.max (Basics.min next limit) 0
-
-
-keyUp : KeyCode -> Msg
-keyUp keyCode =
-    case keyCode of
-        37 ->
-            StopLateralMovement
-
-        39 ->
-            StopLateralMovement
-
-        38 ->
-            StopUpwardsMovement
-
-        40 ->
-            StopUpwardsMovement
-
-        _ ->
-            NoOp
-
-
-keyDown : KeyCode -> Msg
-keyDown keyCode =
-    case keyCode of
-        37 ->
-            MoveLeft
-
-        39 ->
-            MoveRight
-
-        38 ->
-            MoveUp
-
-        40 ->
-            MoveDown
-
-        _ ->
-            NoOp
-
-
-subscriptions : Sub Msg
-subscriptions =
-    Sub.batch
-        [ AnimationFrame.diffs Tick
-        , Keyboard.downs keyDown
-        , Keyboard.ups keyUp
-        ]
 
 
 view : Model -> Svg a
