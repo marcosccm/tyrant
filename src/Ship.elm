@@ -111,7 +111,7 @@ moveX model time =
 view : Model -> Svg a
 view model =
     Svg.path
-        [ d calculatePath model
+        [ d (calculatePath model)
         , stroke "black"
         ]
         []
