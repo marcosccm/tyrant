@@ -4,7 +4,7 @@ module Ship
         , view
         , processInput
         , tick
-        , startingShip
+        , init
         , center
         )
 

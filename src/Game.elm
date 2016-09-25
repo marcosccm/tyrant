@@ -32,7 +32,7 @@ boundaries =
 
 init : Model
 init =
-    { ship = Ship.startingShip
+    { ship = Ship.init
     , cannon = Cannon.init
     }
 
