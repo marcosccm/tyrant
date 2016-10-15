@@ -15,6 +15,7 @@ import Svg.Attributes exposing (..)
 import Time exposing (Time)
 import Ship
 import Cannon
+import Enemies
 import PlayerActions
 import AnimationFrame
 import Boundaries exposing (Boundaries)
@@ -23,6 +24,7 @@ import Boundaries exposing (Boundaries)
 type alias Model =
     { ship : Ship.Model
     , cannon : Cannon.Model
+    , enemies : Enemies.Model
     }
 
 
@@ -35,6 +37,7 @@ init : Model
 init =
     { ship = Ship.init
     , cannon = Cannon.init
+    , enemies = Enemies.init
     }
 
 
@@ -53,11 +56,15 @@ update message model =
 
                 newCannon =
                     Cannon.tick delta model.cannon
+
+                newEnemies =
+                    Enemies.tick delta boundaries model.enemies
             in
                 return <|
                     { model
                         | ship = newShip
                         , cannon = newCannon
+                        , enemies = newEnemies
                     }
 
         PlayerAction playerAction ->
@@ -103,9 +110,10 @@ viewBoxSize =
 
 
 view : Model -> Svg Msg
-view { ship, cannon } =
+view { ship, cannon, enemies } =
     Ship.view ship
-        :: Cannon.view cannon
+        :: (Cannon.view cannon)
+        ++ (Enemies.view enemies)
         |> renderUniverse
 
 
