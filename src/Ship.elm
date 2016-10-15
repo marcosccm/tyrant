@@ -6,6 +6,7 @@ module Ship
         , tick
         , init
         , center
+        , toCollisionRect
         )
 
 import Svg exposing (path, Svg)
@@ -14,6 +15,7 @@ import String
 import Time exposing (Time)
 import PlayerActions as Action exposing (Action)
 import Boundaries exposing (Boundaries)
+import Collisions
 
 
 type alias Model =
@@ -35,6 +37,11 @@ init =
     , xSpeed = 0
     , ySpeed = 0
     }
+
+
+toCollisionRect : Model -> Collisions.Rect
+toCollisionRect { x, y, width, height } =
+    { x = x, y = y, width = width, height = height }
 
 
 center : Model -> ( Float, Float )

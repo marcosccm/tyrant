@@ -4,6 +4,7 @@ module Enemies
         , view
         , tick
         , init
+        , toCollisionRects
         )
 
 import Svg exposing (path, Svg)
@@ -12,6 +13,7 @@ import String
 import Time exposing (Time)
 import PlayerActions as Action exposing (Action)
 import Boundaries exposing (Boundaries)
+import Collisions
 
 
 type alias Ship =
@@ -26,6 +28,16 @@ type alias Ship =
 
 type alias Model =
     List Ship
+
+
+toCollisionRects : Model -> List Collisions.Rect
+toCollisionRects model =
+    List.map toCollisionRect model
+
+
+toCollisionRect : Ship -> Collisions.Rect
+toCollisionRect { posX, posY, width, height } =
+    { x = posX, y = posY, width = width, height = height }
 
 
 init : Model

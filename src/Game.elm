@@ -19,12 +19,15 @@ import Enemies
 import PlayerActions
 import AnimationFrame
 import Boundaries exposing (Boundaries)
+import GameOverScreen
+import Collisions
 
 
 type alias Model =
     { ship : Ship.Model
     , cannon : Cannon.Model
     , enemies : Enemies.Model
+    , over : Bool
     }
 
 
@@ -38,6 +41,7 @@ init =
     { ship = Ship.init
     , cannon = Cannon.init
     , enemies = Enemies.init
+    , over = False
     }
 
 
@@ -46,26 +50,35 @@ type Msg
     | Tick Time
 
 
+type PossibleCollision
+    = ShipAndEnemy
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update message model =
     case message of
         Tick delta ->
-            let
-                newShip =
-                    Ship.tick delta boundaries model.ship
+            case (detectCollisions model) of
+                Just ShipAndEnemy ->
+                    return { model | over = True }
 
-                newCannon =
-                    Cannon.tick delta model.cannon
+                Nothing ->
+                    let
+                        newShip =
+                            Ship.tick delta boundaries model.ship
 
-                newEnemies =
-                    Enemies.tick delta boundaries model.enemies
-            in
-                return <|
-                    { model
-                        | ship = newShip
-                        , cannon = newCannon
-                        , enemies = newEnemies
-                    }
+                        newCannon =
+                            Cannon.tick delta model.cannon
+
+                        newEnemies =
+                            Enemies.tick delta boundaries model.enemies
+                    in
+                        return <|
+                            { model
+                                | ship = newShip
+                                , cannon = newCannon
+                                , enemies = newEnemies
+                            }
 
         PlayerAction playerAction ->
             let
@@ -83,6 +96,14 @@ update message model =
                         | ship = newShip
                         , cannon = newCannon
                     }
+
+
+detectCollisions : Model -> Maybe PossibleCollision
+detectCollisions { ship, enemies } =
+    if Collisions.detect (Enemies.toCollisionRects enemies) (Ship.toCollisionRect ship) then
+        Just ShipAndEnemy
+    else
+        Nothing
 
 
 return : Model -> ( Model, Cmd Msg )
@@ -110,11 +131,14 @@ viewBoxSize =
 
 
 view : Model -> Svg Msg
-view { ship, cannon, enemies } =
-    Ship.view ship
-        :: (Cannon.view cannon)
-        ++ (Enemies.view enemies)
-        |> renderUniverse
+view { ship, cannon, enemies, over } =
+    if over then
+        renderUniverse [ (GameOverScreen.view boundaries) ]
+    else
+        Ship.view ship
+            :: (Cannon.view cannon)
+            ++ (Enemies.view enemies)
+            |> renderUniverse
 
 
 renderUniverse : List (Svg a) -> Svg a
