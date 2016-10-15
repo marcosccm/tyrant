@@ -20,7 +20,7 @@ import PlayerActions
 import AnimationFrame
 import Boundaries exposing (Boundaries)
 import GameOverScreen
-import Collisions
+import Collision
 
 
 type alias Model =
@@ -100,7 +100,7 @@ update message model =
 
 detectCollisions : Model -> Maybe PossibleCollision
 detectCollisions { ship, enemies } =
-    if Collisions.detect (Enemies.toCollisionRects enemies) (Ship.toCollisionRect ship) then
+    if Collision.detect enemies ship then
         Just ShipAndEnemy
     else
         Nothing

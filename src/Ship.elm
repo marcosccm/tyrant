@@ -6,7 +6,6 @@ module Ship
         , tick
         , init
         , center
-        , toCollisionRect
         )
 
 import Svg exposing (path, Svg)
@@ -15,12 +14,11 @@ import String
 import Time exposing (Time)
 import PlayerActions as Action exposing (Action)
 import Boundaries exposing (Boundaries)
-import Collisions
 
 
 type alias Model =
-    { x : Float
-    , y : Float
+    { posX : Float
+    , posY : Float
     , width : Float
     , height : Float
     , xSpeed : Float
@@ -30,8 +28,8 @@ type alias Model =
 
 init : Model
 init =
-    { x = 10
-    , y = 200
+    { posX = 10
+    , posY = 200
     , width = 80
     , height = 40
     , xSpeed = 0
@@ -39,14 +37,9 @@ init =
     }
 
 
-toCollisionRect : Model -> Collisions.Rect
-toCollisionRect { x, y, width, height } =
-    { x = x, y = y, width = width, height = height }
-
-
 center : Model -> ( Float, Float )
-center { x, y, width, height } =
-    ( x + width / 2, y + height / 2 )
+center { posX, posY, width, height } =
+    ( posX + width / 2, posY + height / 2 )
 
 
 processInput : Action -> Model -> Model
@@ -77,16 +70,16 @@ processInput action model =
 tick : Time -> Boundaries -> Model -> Model
 tick delta boundaries model =
     { model
-        | x =
+        | posX =
             Boundaries.clampX
                 boundaries
                 model
-                (model.x + (delta * model.xSpeed))
-        , y =
+                (model.posX + (delta * model.xSpeed))
+        , posY =
             Boundaries.clampY
                 boundaries
                 model
-                (model.y + (delta * model.ySpeed))
+                (model.posY + (delta * model.ySpeed))
     }
 
 
@@ -100,9 +93,9 @@ view model =
 
 
 calculatePath : Model -> String
-calculatePath { x, y, height, width } =
+calculatePath { posX, posY, height, width } =
     String.join " " <|
-        [ component "M" [ x, y ]
+        [ component "M" [ posX, posY ]
         , component "v" [ height ]
         , component "l" [ width, (-height / 2) ]
         , "Z"
