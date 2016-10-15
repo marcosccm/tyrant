@@ -17,6 +17,7 @@ import Ship
 import Cannon
 import PlayerActions
 import AnimationFrame
+import Boundaries exposing (Boundaries)
 
 
 type alias Model =
@@ -25,9 +26,9 @@ type alias Model =
     }
 
 
-boundaries : ( Float, Float )
+boundaries : Boundaries
 boundaries =
-    ( 800, 800 )
+    Boundaries.init 800 800
 
 
 init : Model
@@ -93,10 +94,10 @@ subscriptions _ =
 viewBoxSize : String
 viewBoxSize =
     let
-        ( xLimit, yLimit ) =
+        { x, y } =
             boundaries
     in
-        [ 0, 0, yLimit, xLimit ]
+        [ 0, 0, y, x ]
             |> List.map toString
             |> String.join " "
 
@@ -111,12 +112,12 @@ view { ship, cannon } =
 renderUniverse : List (Svg a) -> Svg a
 renderUniverse children =
     let
-        ( xLimit, yLimit ) =
+        { y, x } =
             boundaries
     in
         svg
-            [ height (toString yLimit)
-            , width (toString xLimit)
+            [ height (toString y)
+            , width (toString x)
             , viewBox viewBoxSize
             ]
             children

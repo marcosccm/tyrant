@@ -13,6 +13,7 @@ import Svg.Attributes exposing (..)
 import String
 import Time exposing (Time)
 import PlayerActions as Action exposing (Action)
+import Boundaries exposing (Boundaries)
 
 
 type alias Model =
@@ -25,10 +26,10 @@ type alias Model =
     }
 
 
-startingShip : Model
-startingShip =
+init : Model
+init =
     { x = 10
-    , y = 10
+    , y = 200
     , width = 80
     , height = 40
     , xSpeed = 0
@@ -66,23 +67,20 @@ processInput action model =
             model
 
 
-tick : Time -> ( Float, Float ) -> Model -> Model
-tick delta ( xLimit, yLimit ) model =
+tick : Time -> Boundaries -> Model -> Model
+tick delta boundaries model =
     { model
         | x =
-            clamp
-                (xLimit - model.width)
+            Boundaries.clampX
+                boundaries
+                model
                 (model.x + (delta * model.xSpeed))
         , y =
-            clamp
-                (yLimit - model.height)
+            Boundaries.clampY
+                boundaries
+                model
                 (model.y + (delta * model.ySpeed))
     }
-
-
-clamp : Float -> Float -> Float
-clamp limit attempt =
-    Basics.max (Basics.min attempt limit) 0
 
 
 view : Model -> Svg a
